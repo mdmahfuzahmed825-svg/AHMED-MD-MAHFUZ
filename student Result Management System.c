@@ -8,21 +8,25 @@ typedef struct {
     char grade;
 } Student;
 
-// total, average, grade
-void calc(Student *s){
-    s->total = 0;
-    for(int i = 0; i < 5; i++)
-        s->total += s->m[i];
-    s->avg = s->total / 5;
+// total mark , average and the grade
+Student calc(Student s){
+    s.total = 0;
 
-    if(s->avg >= 80) s->grade = 'A';
-    else if(s->avg >= 70) s->grade = 'B';
-    else if(s->avg >= 60) s->grade = 'C';
-    else if(s->avg >= 50) s->grade = 'D';
-    else s->grade = 'F';
+    for(int i = 0; i < 5; i++)
+        s.total += s.m[i];
+
+    s.avg = s.total / 5;
+
+    if(s.avg >= 80) s.grade = 'A';
+    else if(s.avg >= 70) s.grade = 'B';
+    else if(s.avg >= 60) s.grade = 'C';
+    else if(s.avg >= 50) s.grade = 'D';
+    else s.grade = 'F';
+
+    return s;
 }
 
-// save
+// Save information
 void save(Student *list, int n){
     FILE *f = fopen("data.bin", "wb");
     fwrite(&n, sizeof(int), 1, f);
@@ -30,7 +34,7 @@ void save(Student *list, int n){
     fclose(f);
 }
 
-// Load student
+// Load information
 int load(Student **list, int *n){
     FILE *f = fopen("data.bin", "rb");
     if(!f) return 0;
@@ -45,7 +49,6 @@ int load(Student **list, int *n){
 int main(){
     Student *list = NULL;
     int n = 0, ch;
-    printf("Get the access to ---- \n");
 
     load(&list, &n);
 
@@ -53,65 +56,78 @@ int main(){
         printf("\n1. Add Student\n2. Show Students\n3. Search by ID\n4. Edit Student\n5. Delete Student\n6. Save & Exit\nChoice: ");
         scanf("%d", &ch);
 
-        if(ch == 1){  //adding student
+        // Add
+        if(ch == 1){
             list = realloc(list, (n + 1) * sizeof(Student));
-            Student *s = &list[n];
+            Student s;
 
-            printf("Name: "); scanf(" %[^\n]", s->name);
-            printf("ID: "); scanf("%s", s->id);
+            printf("Name: ");
+            scanf(" %[^\n]", s.name);
 
-            for(int i=0; i<5; i++){
-                printf("Mark %d: ", i+1);
-                scanf("%f", &s->m[i]);
+            printf("ID: ");
+            scanf("%s", s.id);
+
+            for(int i = 0; i < 5; i++){
+                printf("Mark %d: ", i + 1);
+                scanf("%f", &s.m[i]);
             }
 
-            calc(s);
+            s = calc(s);
+            list[n] = s;
             n++;
+
             printf("Student Added!\n");
         }
 
+        // Show
         else if(ch == 2){
-    if(n == 0) printf("\nNo records.\n");
-    else{
-        printf("\n%-
+            if(n == 0) printf("\nNo records.\n");
+            else{
+                printf("\n%-4s %-20s %-12s %-10s %-10s %-6s\n",
+                    "No", "Name", "ID", "Total", "Average", "Grade");
+                printf("--------------------------------------------------------------------\n");
 
-               4s %-20s %-12s %-10s %-10s %-6s\n",
-            "No", "Name", "ID", "Total", "Average", "Grade");
-
-        printf("--------------------------------------------------------------------\n");
-
-        for(int i=0; i<n; i++){
-            printf("%-4d %-20s %-12s %-10.1f %-10.1f %-6c\n",
-                i+1, list[i].name, list[i].id,
-                list[i].total, list[i].avg, list[i].grade);
+                for(int i=0; i<n; i++){
+                    printf("%-4d %-20s %-12s %-10.1f %-10.1f %-6c\n",
+                        i+1,
+                        list[i].name,
+                        list[i].id,
+                        list[i].total,
+                        list[i].avg,
+                        list[i].grade
+                    );
+                }
+            }
         }
-    }
-}
 
-
-        else if(ch == 3){   // SEARCH BY ID
+        // Search
+        else if(ch == 3){
             if(n == 0){ printf("No data.\n"); continue; }
 
             char sid[20];
-            printf("Enter ID to search: ");
+            printf("Enter ID: ");
             scanf("%s", sid);
 
             int found = 0;
-            for(int i=0; i<n; i++){
+            for(int i = 0; i < n; i++){
                 if(strcmp(list[i].id, sid) == 0){
                     printf("\nStudent Found:\n");
                     printf("Name: %s\nID: %s\nTotal: %.1f\nAverage: %.1f\nGrade: %c\n",
-                        list[i].name, list[i].id,
-                        list[i].total, list[i].avg, list[i].grade);
+                        list[i].name,
+                        list[i].id,
+                        list[i].total,
+                        list[i].avg,
+                        list[i].grade
+                    );
                     found = 1;
                     break;
                 }
             }
-
-            if(!found) printf("No student found with this ID.\n");
+            if(!found) printf("Not Found!\n");
         }
 
-        else if(ch == 4){   // Edit
+        // Edit
+        else if(ch == 4){
             if(n == 0){ printf("No data.\n"); continue; }
 
             int idx;
@@ -120,34 +136,40 @@ int main(){
             idx--;
 
             if(idx < 0 || idx >= n){
-                printf("Invalid Student.\n");
+                printf("Invalid number!\n");
                 continue;
             }
 
-            Student *s = &list[idx];
+            Student s = list[idx];
 
-            printf("New Name: "); scanf(" %[^\n]", s->name);
-            printf("New ID: "); scanf("%s", s->id);
+            printf("New Name: ");
+            scanf(" %[^\n]", s.name);
+
+            printf("New ID: ");
+            scanf("%s", s.id);
 
             for(int i=0; i<5; i++){
                 printf("New Mark %d: ", i+1);
-                scanf("%f", &s->m[i]);
+                scanf("%f", &s.m[i]);
             }
 
-            calc(s);
-            printf("Student Updated!\n");
+            s = calc(s);   // recalc
+            list[idx] = s;
+
+            printf("Updated!\n");
         }
 
-        else if(ch == 5){   // DELETE
+        // Delete
+        else if(ch == 5){
             if(n == 0){ printf("No data.\n"); continue; }
 
             int idx;
-            printf("Enter student number to delete: ");
+            printf("Enter number to delete: ");
             scanf("%d", &idx);
             idx--;
 
             if(idx < 0 || idx >= n){
-                printf("Invalid Student.\n");
+                printf("Invalid number!\n");
                 continue;
             }
 
@@ -156,15 +178,14 @@ int main(){
 
             n--;
             list = realloc(list, n * sizeof(Student));
-
-            printf("Student Deleted!\n");
+            printf("Deleted!\n");
         }
 
     } while(ch != 6);
 
     save(list, n);
     free(list);
-    printf("\nSaved & Exit\n");
+
+    printf("Saved & Exit\n");
     return 0;
 }
-
